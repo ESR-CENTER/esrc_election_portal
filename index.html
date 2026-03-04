@@ -721,7 +721,7 @@ footer strong { color: var(--text-main); font-weight: 700; font-family: var(--fo
   <div class="card gate-wrap" style="max-width: 720px;">
     <div class="gate-icon">💳</div>
     <div class="gate-title">Submit Payment</div>
-    <div class="gate-sub">Only for candidates who have been approved by the Admin. Select your required formalities, pay the exact fee, and submit your TrxID here.</div>
+    <div class="gate-sub">Only for candidates who have been approved by the Admin. Pay the ৳300 nomination fee and submit your TrxID here.</div>
     
     <div style="background: rgba(0, 230, 118, 0.05); border: 1px solid var(--primary); border-radius: var(--radius-md); padding: 32px; margin-bottom: 32px; box-shadow: inset 0 0 20px rgba(0, 230, 118, 0.05); text-align: left;">
       <div style="font-size: 15px; color: var(--text-main); margin-bottom: 16px; font-weight: 500;">Please <strong>Send Money</strong> to one of the following numbers:</div>
@@ -734,34 +734,11 @@ footer strong { color: var(--text-main); font-weight: 700; font-family: var(--fo
         </div>
       </div>
 
-      <!-- POST ELECTION FORMALITIES IN PAYMENT -->
+      <!-- DIRECT NOMINATION FEE -->
       <div class="fg full" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--glass-border);">
-        <label style="font-size: 16px; color: var(--primary);">নির্বাচন পরবর্তী আনুষ্ঠানিকতা (Post-Election Formalities Fee)</label>
-        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 20px; color: var(--text-sec); font-size: 14px; margin-top: 8px;">
-          <p style="margin-bottom: 16px; color: var(--text-main); font-size: 15px;">নির্বাচনে বিজয়ী বা মনোনীত প্রার্থীদের জন্য নিচের ফি প্রযোজ্য। (প্রয়োজনীয় সামগ্রীগুলো নির্বাচন করুন):</p>
-          
-          <label class="formality-item" style="opacity: 0.8; cursor: not-allowed;">
-            <input type="checkbox" class="pay-formality-cb" value="Ranked Sash" checked disabled>
-            <span>১. র‍্যাঙ্কড স্যাশ (Ranked Sash) - <strong>৳২০০</strong> (Mandatory)</span>
-          </label>
-          <label class="formality-item" style="opacity: 0.8; cursor: not-allowed;">
-            <input type="checkbox" class="pay-formality-cb" value="Appointment Letter" checked disabled>
-            <span>২. অ্যাপয়েন্টমেন্ট লেটার (Appointment Letter) - <strong>৳৫০</strong> (Mandatory)</span>
-          </label>
-          <label class="formality-item">
-            <input type="checkbox" class="pay-formality-cb opt-cb" value="Official Badge" data-price="100">
-            <span>৩. আইডি কার্ড ও রিবন (Official Badge) - <strong>৳১০০</strong> (Optional)</span>
-          </label>
-          <label class="formality-item">
-            <input type="checkbox" class="pay-formality-cb opt-cb" value="Coat Pin" data-price="100">
-            <span>৪. কোট Pin (Optional Coat Pin) - <strong>৳১০০</strong> (Optional)</span>
-          </label>
-
-          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 16px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Mandatory Base Fees:</span> <span>৳250</span></div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-tertiary);"><span>Optional Extras:</span> <span>+ ৳<span id="pay-opt-total">0</span></span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 800; color: var(--primary); font-size: 20px; margin-top: 12px;"><span>Total Payable Amount:</span> <span>৳<span id="pay-grand-total">250</span></span></div>
-          </div>
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 24px; color: var(--text-sec); text-align: center;">
+          <span style="display: block; font-weight: 600; color: var(--text-main); margin-bottom: 8px; font-size: 18px;">মনোনয়ন ফি (Nomination Fee)</span>
+          <span style="font-family: var(--font-heading); font-size: 36px; font-weight: 800; color: var(--primary);">৳300</span>
         </div>
       </div>
     </div>
@@ -769,7 +746,7 @@ footer strong { color: var(--text-main); font-weight: 700; font-family: var(--fo
     <div class="form-grid" style="text-align: left;">
       <div class="fg full"><label>Your Candidate Student ID *</label><input type="text" id="pay-sid" placeholder="e.g. 241-15-519"/></div>
       <div class="fg"><label>Payer Full Name *</label><input type="text" id="pay-name" placeholder="Name of Sender"/></div>
-      <div class="fg"><label>Amount Sent (৳) *</label><input type="number" id="pay-amount" placeholder="e.g. 350"/></div>
+      <div class="fg"><label>Amount Sent (৳) *</label><input type="number" id="pay-amount" value="300" readonly style="opacity: 0.7; cursor: not-allowed;"/></div>
       <div class="fg"><label>Sender Number *</label><input type="text" id="pay-number" placeholder="01XXXXXXXXX"/></div>
       <div class="fg"><label>Transaction ID (TrxID) *</label><input type="text" id="pay-trx" placeholder="Enter TXN ID..."/></div>
     </div>
@@ -961,19 +938,7 @@ let electionOpen    = true;
 let liveResultsOpen = true; 
 let currentVoter    = null;
 
-const ADMIN_PASS    = 'admin@1111';
-
-// ── FORMALITY PRICE CALCULATION ─────────────────────
-document.querySelectorAll('.opt-cb').forEach(cb => {
-  cb.addEventListener('change', () => {
-    let optTotal = 0;
-    document.querySelectorAll('.opt-cb:checked').forEach(checkedCb => {
-      optTotal += parseInt(checkedCb.dataset.price);
-    });
-    document.getElementById('pay-opt-total').textContent = optTotal;
-    document.getElementById('pay-grand-total').textContent = 250 + optTotal;
-  });
-});
+const ADMIN_PASS    = 'admin123';
 
 // ── UI HELPERS FOR LOADING STATES ─────────────────────
 function setBtnLoading(btnId, isLoading, originalText = '') {
@@ -1242,13 +1207,7 @@ async function submitPayment() {
 
   setBtnLoading('btn-submit-payment', true);
 
-  // Capture requested formalities
-  const selectedFormalities = [];
-  selectedFormalities.push("Ranked Sash");
-  selectedFormalities.push("Appointment Letter");
-  document.querySelectorAll('.opt-cb:checked').forEach(cb => selectedFormalities.push(cb.value));
-
-  const formattedTrx = `TrxID: ${trx} | ৳${amount} | Payer: ${name} | Items: ${selectedFormalities.join(', ')}`;
+  const formattedTrx = `TrxID: ${trx} | ৳${amount} | Payer: ${name}`;
 
   const { data, error } = await supabaseClient.from('candidates').update({
     payment_number: number,
@@ -1261,10 +1220,7 @@ async function submitPayment() {
     toast('Candidate ID not found. Please make sure your Student ID is correct.', true);
   } else {
     toast('Payment details submitted securely!');
-    ['pay-sid', 'pay-name', 'pay-amount', 'pay-number', 'pay-trx'].forEach(id => document.getElementById(id).value = '');
-    document.querySelectorAll('.opt-cb').forEach(cb => cb.checked = false);
-    document.getElementById('pay-opt-total').textContent = '0';
-    document.getElementById('pay-grand-total').textContent = '250';
+    ['pay-sid', 'pay-name', 'pay-number', 'pay-trx'].forEach(id => document.getElementById(id).value = '');
   }
   
   setBtnLoading('btn-submit-payment', false, 'Submit Payment Details');
