@@ -10,6 +10,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
+<!-- PDF Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
 <style>
 :root {
   /* Green Color Palette */
@@ -360,7 +364,7 @@ tbody td { padding: 16px 20px; color: var(--text-main); vertical-align: middle; 
 .slider::before { content: ''; position: absolute; height: 26px; width: 26px; left: 2px; bottom: 2px; background: #fff; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3);}
 input:checked + .slider { background: var(--primary); border-color: var(--primary);}
 input:checked + .slider::before { transform: translateX(24px); }
-.btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 700; font-family: var(--font-heading); cursor: pointer; transition: all 0.2s;}
+.btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 700; font-family: var(--font-heading); cursor: transition: all 0.2s;}
 .btn-logout:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px);}
 
 /* TOAST */
@@ -853,6 +857,7 @@ footer strong { color: var(--text-main); font-weight: 700; font-family: var(--fo
         <div style="display:flex; gap:16px; margin-bottom: 24px; flex-wrap: wrap;">
           <input type="text" placeholder="Search by name, ID or department…" oninput="filterVoters(this.value)" style="flex:1; min-width: 200px;"/>
           <button class="btn btn-o" onclick="renderVoterTable()">Refresh</button>
+          <button class="btn btn-p" onclick="downloadVoterPDF()">📄 Download PDF</button>
         </div>
         <div class="twrap">
           <table>
@@ -866,9 +871,14 @@ footer strong { color: var(--text-main); font-weight: 700; font-family: var(--fo
     <!-- CANDIDATES -->
     <div id="atab-candidates" style="display:none">
       <div class="card">
-        <div class="card-title">Candidate Directory</div>
-        <div class="card-sub">Review, approve, and manage registered candidates.</div>
-        <div class="twrap" style="margin-top:24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+          <div>
+            <div class="card-title" style="margin-bottom: 4px;">Candidate Directory</div>
+            <div class="card-sub" style="margin-bottom: 0;">Review, approve, and manage registered candidates.</div>
+          </div>
+          <button class="btn btn-p" onclick="downloadCandidatePDF()">📄 Download PDF</button>
+        </div>
+        <div class="twrap">
           <table>
             <thead><tr><th>#</th><th>Image</th><th>Name</th><th>Position</th><th>Dept</th><th>Portfolio</th><th>Phone No.</th><th>TrxID Details</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="cand-tbody"></tbody>
@@ -1610,7 +1620,7 @@ async function removeCandidate(id) {
 
 function renderCandTable() {
   const tb = document.getElementById('cand-tbody');
-  if(!candidates.length) { tb.innerHTML = `<tr><td colspan="10"><div class="empty">No candidates found.</div></td></tr>`; return; }
+  if(!candidates.length) { tb.innerHTML = `<tr><td colspan="7"><div class="empty">No candidates found.</div></td></tr>`; return; }
   
   tb.innerHTML = candidates.map((c,i) => `
     <tr>
@@ -1792,6 +1802,82 @@ function renderLive() {
     </div>`;
   });
   body.innerHTML = html;
+}
+
+// ── EXPORT PDF FUNCTIONS ─────────────────────────────
+function downloadVoterPDF() {
+  if (typeof window.jspdf === 'undefined') { toast("PDF library is still loading, please wait...", true); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("ESRC Voter Directory", 14, 22);
+  doc.setFontSize(11);
+  doc.text("Generated on: " + new Date().toLocaleString(), 14, 30);
+  
+  // Respect current search filter
+  const list = voters.filter(v => 
+    !vFilter || 
+    v.name.toLowerCase().includes(vFilter) || 
+    v.sid.toLowerCase().includes(vFilter) || 
+    (v.dept||'').toLowerCase().includes(vFilter)
+  );
+
+  const tableData = list.map((v, i) => [
+    i + 1,
+    v.name,
+    v.sid,
+    v.dept || '-',
+    v.batch || '-',
+    (v.voted || votes[v.id]) ? 'Yes' : 'No',
+    v.isApproved ? 'Yes' : 'No'
+  ]);
+
+  doc.autoTable({
+    startY: 36,
+    head: [['#', 'Name', 'Student ID', 'Dept', 'Batch', 'Voted', 'Approved']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: { fillColor: [0, 230, 118], textColor: [0, 0, 0] }
+  });
+
+  doc.save("ESRC_Voters_List.pdf");
+  toast("Voter list PDF downloaded!");
+}
+
+function downloadCandidatePDF() {
+  if (typeof window.jspdf === 'undefined') { toast("PDF library is still loading, please wait...", true); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("ESRC Candidate Directory", 14, 22);
+  doc.setFontSize(11);
+  doc.text("Generated on: " + new Date().toLocaleString(), 14, 30);
+  
+  const tableData = candidates.map((c, i) => [
+    i + 1,
+    c.name,
+    c.sid || '-',
+    c.position,
+    c.dept || '-',
+    c.isApproved ? 'Yes' : 'No',
+    c.paymentNumber || '-',
+    c.trxId ? c.trxId.split('|').join('\n') : 'Unpaid' // Break long Trx details into new lines
+  ]);
+
+  doc.autoTable({
+    startY: 36,
+    head: [['#', 'Name', 'Student ID', 'Position', 'Dept', 'Approved', 'Pay No.', 'Trx Details']],
+    body: tableData,
+    theme: 'grid',
+    styles: { cellPadding: 3, fontSize: 9 },
+    headStyles: { fillColor: [0, 230, 118], textColor: [0, 0, 0] },
+    columnStyles: { 7: { cellWidth: 40 } } // Give Transaction column a bit more space
+  });
+
+  doc.save("ESRC_Candidates_List.pdf");
+  toast("Candidate list PDF downloaded!");
 }
 
 // ── UTILS ────────────────────────────────────────────
